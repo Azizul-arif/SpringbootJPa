@@ -8,6 +8,8 @@ import com.propertyManagement.propertyManagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
@@ -25,6 +27,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto login(String email, String password) {
-        return null;
+        UserDto userDto=null;
+       Optional<UserEntity> optionalUserEntity = userRepository.findByOwnerEmailAndPassword(email,password);
+        if(optionalUserEntity.isPresent())
+        {
+            userDto=userConverter.convertEntityToDto(optionalUserEntity.get());
+
+        }
+        return userDto;
     }
 }
