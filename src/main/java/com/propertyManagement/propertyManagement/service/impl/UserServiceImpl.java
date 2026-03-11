@@ -3,11 +3,15 @@ package com.propertyManagement.propertyManagement.service.impl;
 import com.propertyManagement.propertyManagement.converter.UserConverter;
 import com.propertyManagement.propertyManagement.dto.UserDto;
 import com.propertyManagement.propertyManagement.entity.UserEntity;
+import com.propertyManagement.propertyManagement.exception.BusinessException;
+import com.propertyManagement.propertyManagement.exception.ErrorModel;
 import com.propertyManagement.propertyManagement.repository.UserRepository;
 import com.propertyManagement.propertyManagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,6 +23,17 @@ public class UserServiceImpl implements UserService {
     private UserConverter userConverter;
     @Override
     public UserDto register(UserDto userDto) {
+        Optional<UserEntity> optUe=userRepository.findByOwnerEmail(userDto.getOwnerEmail());
+        if (optUe.isPresent()) {
+            // Throw a custom exception with ErrorModel
+            List<ErrorModel> errors = new ArrayList<>();
+            ErrorModel error = new ErrorModel();
+            error.setCode("EMAIL_EXISTS");
+            error.setMessage("This email is already registered: " + userDto.getOwnerEmail());
+            errors.add(error);
+
+            throw new BusinessException(errors);
+        }
         UserEntity  userEntity=userConverter.convertDTOtoEntity(userDto);
         userEntity=userRepository.save(userEntity);
         userDto=userConverter.convertEntityToDto(userEntity);
@@ -28,6 +43,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto login(String email, String password) {
         UserDto userDto=null;
+
        Optional<UserEntity> optionalUserEntity = userRepository.findByOwnerEmailAndPassword(email,password);
         if(optionalUserEntity.isPresent())
         {
